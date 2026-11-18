@@ -5,7 +5,7 @@ import (
 )
 
 func TestMap(t *testing.T) {
-	mapApi := MapApi{}
+	mapApi := PokeApi{}
 	cases := []struct {
 		isForward bool
 		expected  []MapLocation

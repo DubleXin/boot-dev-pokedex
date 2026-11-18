@@ -3,7 +3,7 @@ package main
 import "fmt"
 
 func commandMap(cfg *config) error {
-	locations := cfg.mapApi.GetNext()
+	locations := cfg.api.GetNext()
 	for _, loc := range locations {
 		fmt.Println(loc.Name)
 	}
@@ -11,7 +11,7 @@ func commandMap(cfg *config) error {
 }
 
 func commandMapb(cfg *config) error {
-	locations := cfg.mapApi.GetPrevious()
+	locations := cfg.api.GetPrevious()
 	for _, loc := range locations {
 		fmt.Println(loc.Name)
 	}

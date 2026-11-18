@@ -16,7 +16,7 @@ type cliCommand struct {
 
 type config struct {
 	commands map[string]cliCommand
-	mapApi   api.MapApi
+	api      *api.PokeApi
 }
 
 func cleanInput(text string) []string {

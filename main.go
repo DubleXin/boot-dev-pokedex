@@ -1,6 +1,11 @@
 package main
 
-import "github.com/DubleXin/pokedexcli/api"
+import (
+	"time"
+
+	"github.com/DubleXin/pokedexcli/api"
+	"github.com/DubleXin/pokedexcli/pokecache"
+)
 
 func main() {
 	cfg := config{
@@ -26,7 +31,9 @@ func main() {
 				callback:    commandMapb,
 			},
 		},
-		mapApi: api.MapApi{},
+		api: &api.PokeApi{
+			Cache: pokecache.NewCache(time.Minute * 5),
+		},
 	}
 	StartRepl(&cfg)
 

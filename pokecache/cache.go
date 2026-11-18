@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-const ttl = time.Second * 5
+const ttl = time.Minute * 5
 
 type Cache struct {
 	cache map[string]cacheEntry
