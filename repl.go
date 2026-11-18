@@ -3,43 +3,61 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"io"
+	api "github.com/DubleXin/pokedexcli/api"
 	"os"
 	"strings"
 )
+
+type cliCommand struct {
+	name        string
+	description string
+	callback    func(*config) error
+}
+
+type config struct {
+	commands map[string]cliCommand
+	mapApi   api.MapApi
+}
 
 func cleanInput(text string) []string {
 	return strings.Fields(text)
 }
 
-func StartRepl() {
+func StartRepl(cfg *config) {
+
+	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		fmt.Print("Pokedex > ")
-		text, ok := readUserInput(os.Stdin)
+		text, ok := readUserInput(scanner)
 		if !ok {
-			text, ok = readUserInput(os.Stdin)
+			break
+		}
+		if text == "" {
 			continue
 		}
 
-		fmt.Print("Your command was: ", captureCommand(text), "\n")
+		cmd, ok := cfg.commands[captureCommand(text)]
+		if !ok {
+			fmt.Println("Unknown command")
+			continue
+		}
+		err := cmd.callback(cfg)
+		if err != nil {
+			fmt.Print("Error ocured: %w\n", err.Error())
+		}
 	}
 }
 
-func readUserInput(rd io.Reader) (scanned string, ok bool) {
-
-	scanner := bufio.NewScanner(rd)
+func readUserInput(scanner *bufio.Scanner) (scanned string, ok bool) {
 	var text strings.Builder
-	for scanner.Scan() {
-		scanend := scanner.Text()
-		if scanend != "" {
-			text.WriteString(scanend)
-			break
-		}
+	if scanner.Scan() {
+		text.WriteString(scanner.Text())
+		return text.String(), true
 	}
-	if scanner.Err() != nil || text.String() == "" {
+	if scanner.Err() != nil {
 		return "Failed to read input, try again.", false
 	}
-	return text.String(), true
+	return "", false
 
 }
 

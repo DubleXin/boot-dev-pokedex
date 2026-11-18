@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"strings"
 	"testing"
 )
@@ -66,13 +67,14 @@ func TestUserInput(t *testing.T) {
 		},
 		{
 			input:       "",
-			expectedStr: "Failed to read input, try again.",
+			expectedStr: "",
 			expectedOk:  false,
 		},
 	}
 
 	for _, c := range cases {
-		actual, actualOk := readUserInput(strings.NewReader(c.input))
+		scanner := bufio.NewScanner(strings.NewReader(c.input))
+		actual, actualOk := readUserInput(scanner)
 		if len(c.expectedStr) != len(actual) {
 			t.Errorf("TestUserInput: Expected len(): %d but got %d", len(c.expectedStr), len(actual))
 		}
