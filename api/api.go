@@ -1,137 +1,32 @@
 package api
 
-import (
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
-
-	"github.com/DubleXin/pokedexcli/pokecache"
-)
-
-const resourceLink = "https://pokeapi.co/api/v2/location-area?offset=0&limit=20"
-
-type MapResponse struct {
-	NextUrl     string        `json:"next"`
-	PreviousUrl string        `json:"previous"`
-	Results     []MapLocation `json:"results"`
-}
-
-type MapLocation struct {
-	Name string `json:"name"`
-	URL  string `json:"url"`
-}
+import "github.com/DubleXin/pokedexcli/pokecache"
 
 type PokeApi struct {
 	lastMapResponse *MapResponse
 	Cache           *pokecache.Cache
+	caughtPokemons  map[string]Pokemon
 }
 
-func (m *PokeApi) getMapResource(url string) (*MapResponse, error) {
-	if url == "" {
-		return nil, fmt.Errorf("cannot fetch map resource: URL is empty")
+func (p *PokeApi) AddCaughtPokemon(pokemon Pokemon) {
+	if p.caughtPokemons == nil {
+		p.caughtPokemons = make(map[string]Pokemon)
 	}
 
-	if m.Cache != nil {
-		if data, ok := m.Cache.Get(url); ok {
-			var mapRes MapResponse
-			if err := json.Unmarshal(data, &mapRes); err != nil {
-				return nil, fmt.Errorf(
-					"failed to decode cached map response for %q: %w",
-					url, err,
-				)
-			}
-			return &mapRes, nil
-		}
-	}
-
-	res, err := http.Get(url)
-	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to request map resource %q: %w",
-			url, err,
-		)
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf(
-			"failed to fetch map resource %q: unexpected HTTP status %s",
-			url, res.Status,
-		)
-	}
-
-	data, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to read map response body for %q: %w",
-			url, err,
-		)
-	}
-
-	var mapRes MapResponse
-	if err := json.Unmarshal(data, &mapRes); err != nil {
-		return nil, fmt.Errorf(
-			"failed to decode map response for %q: %w",
-			url, err,
-		)
-	}
-
-	if m.Cache != nil {
-		m.Cache.Add(url, data)
-	}
-
-	return &mapRes, nil
+	p.caughtPokemons[pokemon.Name] = pokemon
 }
 
-func (m *PokeApi) getDefault() []MapLocation {
-	res, err := m.getMapResource(resourceLink)
-	if err != nil {
-		fmt.Println(err)
-		if m.lastMapResponse != nil {
-			return m.lastMapResponse.Results
-		}
-		return nil
-	}
-
-	m.lastMapResponse = res
-	return res.Results
+func (p *PokeApi) GetCaughtPokemon(name string) (Pokemon, bool) {
+	pokemon, ok := p.caughtPokemons[name]
+	return pokemon, ok
 }
 
-func (m *PokeApi) GetNext() []MapLocation {
-	if m.lastMapResponse == nil {
-		return m.getDefault()
+func (m *PokeApi) GetCaughtPokemonNames() []string {
+	names := make([]string, 0, len(m.caughtPokemons))
+
+	for name := range m.caughtPokemons {
+		names = append(names, name)
 	}
 
-	if m.lastMapResponse.NextUrl == "" {
-		return m.lastMapResponse.Results
-	}
-
-	res, err := m.getMapResource(m.lastMapResponse.NextUrl)
-	if err != nil {
-		fmt.Println(err)
-		return m.lastMapResponse.Results
-	}
-
-	m.lastMapResponse = res
-	return res.Results
-}
-
-func (m *PokeApi) GetPrevious() []MapLocation {
-	if m.lastMapResponse == nil {
-		return m.getDefault()
-	}
-
-	if m.lastMapResponse.PreviousUrl == "" {
-		return m.lastMapResponse.Results
-	}
-
-	res, err := m.getMapResource(m.lastMapResponse.PreviousUrl)
-	if err != nil {
-		fmt.Println(err)
-		return m.lastMapResponse.Results
-	}
-
-	m.lastMapResponse = res
-	return res.Results
+	return names
 }

@@ -11,7 +11,7 @@ import (
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*config) error
+	callback    func(*config, ...string) error
 }
 
 type config struct {
@@ -35,13 +35,13 @@ func StartRepl(cfg *config) {
 		if text == "" {
 			continue
 		}
-
-		cmd, ok := cfg.commands[captureCommand(text)]
+		cmdStr, cmdArgs := captureCommand(text)
+		cmd, ok := cfg.commands[cmdStr]
 		if !ok {
 			fmt.Println("Unknown command")
 			continue
 		}
-		err := cmd.callback(cfg)
+		err := cmd.callback(cfg, cmdArgs...)
 		if err != nil {
 			fmt.Print("Error ocured: %w\n", err.Error())
 		}
@@ -61,13 +61,16 @@ func readUserInput(scanner *bufio.Scanner) (scanned string, ok bool) {
 
 }
 
-func captureCommand(text string) string {
+func captureCommand(text string) (string, []string) {
 	if text == "" {
-		return ""
+		return "", nil
 	}
 	splitted := cleanInput(text)
 	if len(splitted) == 0 {
-		return ""
+		return "", nil
 	}
-	return strings.ToLower(splitted[0])
+	if len(splitted) > 1 {
+		return strings.ToLower(splitted[0]), splitted[1:]
+	}
+	return strings.ToLower(splitted[0]), nil
 }

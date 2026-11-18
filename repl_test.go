@@ -89,20 +89,33 @@ func TestUserInput(t *testing.T) {
 
 func TestCaptureCommand(t *testing.T) {
 	cases := []struct {
-		input    string
-		expected string
+		input        string
+		expected     string
+		expectedRest []string
 	}{
 		{
-			input:    "Hello World",
-			expected: "hello",
+			input:        "Hello World",
+			expected:     "hello",
+			expectedRest: []string{"World"},
 		},
 		{
 			input:    "World",
 			expected: "world",
 		},
 		{
-			input:    "  hello  world  ",
-			expected: "hello",
+			input:        "  hello  world  ",
+			expected:     "hello",
+			expectedRest: []string{"world"},
+		},
+		{
+			input:        "CaTcH PiKaChu SECOND 123",
+			expected:     "catch",
+			expectedRest: []string{"PiKaChu", "SECOND", "123"},
+		},
+		{
+			input:        "\t HeLLo\tWorld \n Test  ",
+			expected:     "hello",
+			expectedRest: []string{"World", "Test"},
 		},
 		{
 			input:    "",
@@ -112,14 +125,37 @@ func TestCaptureCommand(t *testing.T) {
 			input:    " ",
 			expected: "",
 		},
+		{
+			input:    " \t\n ",
+			expected: "",
+		},
 	}
+
 	for _, c := range cases {
-		actual := captureCommand(c.input)
-		if len(c.expected) != len(actual) {
-			t.Errorf("TestCaptureCommand: Expected len(): %d but got %d", len(c.expected), len(actual))
+		actual, rest := captureCommand(c.input)
+
+		if actual != c.expected {
+			t.Errorf(
+				"Input %q: expected command %q, got %q",
+				c.input, c.expected, actual,
+			)
 		}
-		if c.expected != actual {
-			t.Errorf("TestCaptureCommand: Expected: '%s' but got '%s'", c.expected, actual)
+
+		if len(rest) != len(c.expectedRest) {
+			t.Errorf(
+				"Input %q: expected %d arguments %q, got %d arguments %q",
+				c.input, len(c.expectedRest), c.expectedRest, len(rest), rest,
+			)
+			continue
+		}
+
+		for i, expected := range c.expectedRest {
+			if rest[i] != expected {
+				t.Errorf(
+					"Input %q: expected argument at index %d to be %q, got %q",
+					c.input, i, expected, rest[i],
+				)
+			}
 		}
 	}
 }

@@ -30,6 +30,26 @@ func main() {
 				description: "Previous set of 20 locations",
 				callback:    commandMapb,
 			},
+			"explore": {
+				name:        "explore",
+				description: "Explore selected location",
+				callback:    commandExplore,
+			},
+			"catch": {
+				name:        "catch",
+				description: "Try to catch selected pokemon",
+				callback:    commandCatch,
+			},
+			"inspect": {
+				name:        "inspect",
+				description: "Inspect known pokemon",
+				callback:    commandInspect,
+			},
+			"pokedex": {
+				name:        "pokedex",
+				description: "Display caught pokemons",
+				callback:    commandPokedex,
+			},
 		},
 		api: &api.PokeApi{
 			Cache: pokecache.NewCache(time.Minute * 5),

@@ -210,9 +210,9 @@ func TestMap(t *testing.T) {
 	for _, c := range cases {
 		var actual []MapLocation
 		if c.isForward {
-			actual = mapApi.GetNext()
+			actual = mapApi.GetNextLocation()
 		} else {
-			actual = mapApi.GetPrevious()
+			actual = mapApi.GetPreviousLocation()
 		}
 
 		if len(actual) != len(c.expected) {

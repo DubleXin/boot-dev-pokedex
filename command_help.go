@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func commandHelp(cfg *config) error {
+func commandHelp(cfg *config, args ...string) error {
 
 	if len(cfg.commands) == 0 {
 		return errors.New("Commands map is empty")
